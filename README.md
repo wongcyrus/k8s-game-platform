@@ -17,6 +17,31 @@ cd k8s-game-platform
 git submodule update --init --recursive
 ```
 
+## Check out all submodules
+
+```bash
+./checkout-submodules.sh
+```
+
+This initializes the submodules, fetches `origin`, and checks out each submodule's default branch (for example `main` or `master`).
+
+## Deploy from the superproject
+
+```bash
+cp .env.example .env
+./deploy.sh
+```
+
+The root `samconfig.toml` is the canonical AWS SAM configuration for the platform. The root deploy wrapper copies it into `k8s-grader/k8s-grader-api/samconfig.toml` before delegating to the existing grader deployment flow.
+
+If `.env` exists at the repo root, `deploy.sh` loads it before running the grader deploy flow.
+
+## Undeploy from the superproject
+
+```bash
+./undeploy.sh --yes
+```
+
 ## Updating a component
 
 ```bash
