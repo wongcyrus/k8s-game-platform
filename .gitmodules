@@ -1,0 +1,12 @@
+[submodule "k8s-grader"]
+	path = k8s-grader
+	url = https://github.com/wongcyrus/k8s-grader
+[submodule "k8s-game-rule"]
+	path = k8s-game-rule
+	url = https://github.com/wongcyrus/k8s-game-rule
+[submodule "k8s-isekai"]
+	path = k8s-isekai
+	url = https://github.com/wongcyrus/k8s-isekai
+[submodule "doom.ts"]
+	path = doom.ts
+	url = https://github.com/wongcyrus/doom.ts.git
