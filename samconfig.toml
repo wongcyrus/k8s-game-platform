@@ -21,7 +21,7 @@ resolve_s3 = true
 s3_prefix = "k8s-grader-api-dev"
 region = "us-east-1"
 image_repositories = []
-parameter_overrides = "PythonVersion=python3.14"
+parameter_overrides = "PythonVersion=python3.14 TeacherEmails=\"cywong@vtc.edu.hk,kcheung@vtc.edu.hk,kakaleung@vtc.edu.hk\""
 tags = "Project=\"k8s-grader\" Environment=\"dev\""
 disable_rollback = false
 
@@ -47,7 +47,7 @@ confirm_changeset = true
 resolve_s3 = true
 s3_prefix = "k8s-grader-api-prod"
 region = "us-east-1"
-parameter_overrides = "PythonVersion=python3.14"
+parameter_overrides = "PythonVersion=python3.14 TeacherEmails=\"cywong@vtc.edu.hk,kcheung@vtc.edu.hk,kakaleung@vtc.edu.hk\""
 tags = "Project=\"k8s-grader\" Environment=\"production\""
 disable_rollback = false
 fail_on_empty_changeset = false
