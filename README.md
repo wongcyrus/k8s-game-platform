@@ -32,7 +32,17 @@ cp .env.example .env
 ./deploy.sh
 ```
 
-The root `samconfig.toml` is the canonical AWS SAM configuration for the platform. The root deploy wrapper copies it into `k8s-grader/k8s-grader-api/samconfig.toml` before delegating to the existing grader deployment flow.
+The deploy flow now uses separate SAM config files:
+
+- `k8s-grader/k8s-grader-api/samconfig.dev.toml`
+- `k8s-grader/k8s-grader-api/samconfig.prod.toml`
+
+Use dev by default, or select prod explicitly:
+
+```bash
+./deploy.sh
+ENV=prod ./deploy.sh
+```
 
 If `.env` exists at the repo root, `deploy.sh` loads it before running the grader deploy flow.
 
