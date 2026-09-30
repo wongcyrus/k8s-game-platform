@@ -2,12 +2,13 @@
 
 Parent repository for the Kubernetes game platform.
 
-## Included submodules
+## Included submodules and clients
 
 - `k8s-grader` - grader backend, student portal, deployment flow
 - `k8s-game-rule` - exercise and test content
 - `k8s-isekai` - RPG exercise client
 - `doom.ts` - Doom exercise client
+- `hkzero` - Hong Kong Zero 3D exercise client ([Unofficial Educational Clone & Copyright Disclaimer](hkzero/DISCLAIMER.md))
 
 ## Clone with submodules
 
@@ -65,3 +66,12 @@ git commit -m "Update doom.ts"
 ## Layout
 
 This repository is the integration/orchestration layer. Each submodule remains an independent repository with its own history, issues, and release cadence.
+
+## Attribution & Copyright Notice for `hkzero`
+
+The `hkzero/` directory is an **unofficial, reverse-engineered educational clone** adapted from [Hong Kong Zero (港域時空)](https://hongkongzero.com/) solely for academic demonstration and hands-on Kubernetes grading at the Hong Kong Institute of Information Technology (HKIIT / VTC). 
+
+- **No Official Permission:** No commercial license or official permission was obtained from the original game developers.
+- **Fair Use:** This client is operated strictly for non-commercial educational and interoperability research.
+- **Support the Original:** All original assets, 3D street models, and audio belong entirely to the creators of Hong Kong Zero. Please visit and support the official game at [hongkongzero.com](https://hongkongzero.com/).
+- **Takedown Policy:** For copyright concerns or takedown requests, please refer to the full [hkzero/DISCLAIMER.md](hkzero/DISCLAIMER.md) or open an issue.
