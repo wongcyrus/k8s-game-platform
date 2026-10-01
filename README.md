@@ -47,6 +47,10 @@ ENV=prod ./deploy.sh
 
 If `.env` exists at the repo root, `deploy.sh` loads it before running the grader deploy flow.
 
+The CloudFront distribution sets a one-day browser cache lifetime only for `/hkzero/assets/*`.
+Other game paths and HK Zero HTML retain the default cache behavior; the one-day lifetime
+also allows HK Zero assets without versioned filenames to refresh.
+
 ## Undeploy from the superproject
 
 ```bash
