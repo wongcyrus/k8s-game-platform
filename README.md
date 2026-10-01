@@ -8,7 +8,7 @@ Parent repository for the Kubernetes game platform.
 - `k8s-game-rule` - exercise and test content
 - `k8s-isekai` - RPG exercise client
 - `doom.ts` - Doom exercise client
-- `hkzero` - Hong Kong Zero 3D exercise client ([Educational Clone & Copyright Disclaimer](hkzero/DISCLAIMER.md))
+- `hkzero` - [Hong Kong Zero Kubernetes exercise client](https://github.com/wongcyrus/hkzero-k8s) ([credits and disclaimer](hkzero/DISCLAIMER.md))
 
 ## Clone with submodules
 
@@ -72,6 +72,6 @@ This repository is the integration/orchestration layer. Each submodule remains a
 The `hkzero/` directory is an **educational clone** adapted from [Hong Kong Zero (港域時空)](https://hongkongzero.com/) solely for academic demonstration and hands-on Kubernetes grading at the Hong Kong Institute of Information Technology (HKIIT / VTC). 
 
 - **Special Thanks to Original Author:** We express our deepest gratitude and highest respect to **Arthur and the Hong Kong Zero team** for creating this groundbreaking 3D WebGL reconstruction of Hong Kong. Please experience and support the authentic original game at [hongkongzero.com](https://hongkongzero.com/)!
-- **No Official Permission:** No commercial license or official permission was obtained from the original game developers.
+- **Permission and independence:** The maintainer reports permission to republish this educational adaptation. This is not an official game, endorsement, or general commercial license.
 - **Fair Use & Open Data:** Over 95% of the data volume consists of HKSAR Government CSDI Open Data, OpenStreetMap (ODbL), and CC0/CC-BY assets. This client is operated strictly for non-commercial educational and interoperability research.
 - **Takedown Policy:** For copyright concerns or takedown requests, please refer to the full [hkzero/DISCLAIMER.md](hkzero/DISCLAIMER.md) or open an issue.

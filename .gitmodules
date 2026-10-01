@@ -10,3 +10,6 @@
 [submodule "doom.ts"]
 	path = doom.ts
 	url = https://github.com/wongcyrus/doom.ts.git
+[submodule "hkzero"]
+	path = hkzero
+	url = https://github.com/wongcyrus/hkzero-k8s.git
