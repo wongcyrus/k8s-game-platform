@@ -37,6 +37,7 @@ The deploy flow now uses separate SAM config files:
 
 - `k8s-grader/k8s-grader-api/samconfig.dev.toml`
 - `k8s-grader/k8s-grader-api/samconfig.prod.toml`
+- `k8s-grader/k8s-grader-api/samconfig.exam.toml`
 
 Use dev by default, or select prod explicitly:
 
@@ -44,6 +45,30 @@ Use dev by default, or select prod explicitly:
 ./deploy.sh
 ENV=prod ./deploy.sh
 ```
+
+For an isolated exam stack, use `ENV=exam ./deploy.sh`. This selects
+`samconfig.exam.toml` (`k8s-grader-api-exam`) and enables seven-day Lambda log
+retention, disables API tracing, and aborts abandoned report uploads after one
+day without expiring completed grading reports. Storage uses service-default
+encryption or SSE-S3, not customer-managed KMS keys. Supply a unique
+`SECRET_HASH_OVERRIDE` securely for the first deployment; do not commit it.
+Auto-generated task phases allow 100 attempts in this stack (dev/prod retain
+their default of three); explicit task manifests keep their own limits.
+
+After deployment, publish exam access from `k8s-grader/k8s-grader-api`:
+
+```bash
+python scripts/seed_exam_code.py \
+  --stack-name k8s-grader-api-exam --region us-east-1 \
+  --exam-code YOUR_PRIVATE_EXAM_CODE --game game01 \
+  --game-tests-root ../../k8s-game-rule/tests \
+  --order-mode numeric_prefix --max-attempts 100
+# Review the dry run, then repeat with --apply.
+```
+
+Omitting both date arguments leaves the exam open without a time restriction.
+Keep the exam code private until students may begin. Exam access changes only
+the selected stack; existing dev/prod access and progress are untouched.
 
 If `.env` exists at the repo root, `deploy.sh` loads it before running the grader deploy flow.
 
