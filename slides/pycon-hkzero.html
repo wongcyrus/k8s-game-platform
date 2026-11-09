@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>從港域時空到 Kubernetes：將香港遊戲世界化身雲原生學習平台 | PyCon</title>
+  <style>
+    /* ==========================================================================
+       HK Zero Tactical Cyberpunk Presentation Theme
+       Derived directly from hkzero/k8s-overlay.css
+       ========================================================================== */
+    :root {
+      --bg-deep: #080f17;
+      --bg-card: #0d1720;
+      --bg-panel: #14212c;
+      --border-steel: #3d5869;
+      --border-bright: #52839d;
+      --text-main: #eeeae1;
+      --text-muted: #9cb1bc;
+      --text-dim: #6e8694;
+      --accent-red: #bb423b;
+      --status-running: #f1b748;
+      --status-passed: #38c172;
+      --status-failed: #e3342f;
+      --accent-cyan: #56b6c2;
+      --accent-gold: #f2d0a0;
+      --code-bg: #070d13;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Helvetica Neue", sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==========================================================================
+       Directional View Transitions (Modern Web Guidance Baseline)
+       ========================================================================== */
+    @keyframes slide-to-left {
+      to { transform: translateX(-40px); opacity: 0; }
+    }
+    @keyframes slide-from-right {
+      from { transform: translateX(40px); opacity: 0; }
+    }
+    @keyframes slide-to-right {
+      to { transform: translateX(40px); opacity: 0; }
+    }
+    @keyframes slide-from-left {
+      from { transform: translateX(-40px); opacity: 0; }
+    }
+
+    ::view-transition-group(root) {
+      animation: 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    html:active-view-transition-type(forward)::view-transition-old(root) {
+      animation-name: slide-to-left;
+    }
+    html:active-view-transition-type(forward)::view-transition-new(root) {
+      animation-name: slide-from-right;
+    }
+    html:active-view-transition-type(backward)::view-transition-old(root) {
+      animation-name: slide-to-right;
+    }
+    html:active-view-transition-type(backward)::view-transition-new(root) {
+      animation-name: slide-from-left;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      ::view-transition-group(*),
+      ::view-transition-old(*),
+      ::view-transition-new(*) {
+        animation: none !important;
+      }
+    }
+
+    /* ==========================================================================
+       Deck Layout & Chrome
+       ========================================================================== */
+    .deck-viewport {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Top Tactical HUD Bar */
+    .hud-topbar {
+      height: 48px;
+      padding: 0 32px;
+      background: rgba(13, 23, 32, 0.92);
+      border-bottom: 1px solid var(--border-steel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .hud-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .hud-brand img {
+      width: 22px;
+      height: 22px;
+    }
+
+    .hud-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-steel);
+      border-left: 3px solid var(--status-passed);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-main);
+    }
+
+    .hud-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--status-passed);
+      box-shadow: 0 0 8px var(--status-passed);
+    }
+
+    /* Slide Container */
+    .slides-stage {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 36px 64px;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.22;
+      z-index: 0;
+      pointer-events: none;
+      filter: saturate(1.1) contrast(1.05);
+    }
+
+    .slide-bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 75% 30%, rgba(13, 23, 32, 0.55) 0%, rgba(8, 15, 23, 0.94) 75%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .slide-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Tactical Header Styling from k8s-overlay.css */
+    .k8s-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      padding-bottom: 14px;
+      margin-bottom: 24px;
+    }
+
+    .k8s-tagline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      letter-spacing: 2.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .k8s-red-bar {
+      width: 28px;
+      height: 4px;
+      background: var(--accent-red);
+      display: inline-block;
+    }
+
+    h1.slide-title, h2.slide-title {
+      margin: 8px 0 4px;
+      font-size: clamp(28px, 3.2vw, 44px);
+      letter-spacing: 1.2px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      outline: none;
+    }
+
+    .slide-subtitle {
+      font-size: clamp(15px, 1.4vw, 20px);
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .grid-asym {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .grid-code-focus {
+      display: grid;
+      grid-template-columns: 0.82fr 1.18fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    /* Tactical Cards */
+    .k8s-card {
+      background: rgba(13, 23, 32, 0.9);
+      border: 1px solid var(--border-steel);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(82, 131, 157, 0.1);
+      padding: 24px 28px;
+      border-radius: 3px;
+      backdrop-filter: blur(10px);
+    }
+
+    .k8s-card h3 {
+      font-size: 19px;
+      color: #fff;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .k8s-card p, .k8s-card li {
+      font-size: 16px;
+      line-height: 1.65;
+      color: #cdd9df;
+    }
+
+    .k8s-card ul {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .k8s-card li strong {
+      color: var(--accent-gold);
+    }
+
+    /* Status Boxes from k8s-overlay.css */
+    .k8s-status-box {
+      padding: 16px 20px;
+      background: var(--bg-panel);
+      border-left: 4px solid var(--border-bright);
+      margin: 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .k8s-status-box.running {
+      border-left-color: var(--status-running);
+      background: rgba(241, 183, 72, 0.1);
+    }
+
+    .k8s-status-box.passed {
+      border-left-color: var(--status-passed);
+      background: rgba(56, 193, 114, 0.12);
+    }
+
+    .k8s-status-box.failed {
+      border-left-color: var(--status-failed);
+      background: rgba(227, 52, 47, 0.12);
+    }
+
+    .k8s-spinner {
+      width: 22px;
+      height: 22px;
+      border: 2.5px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--status-running);
+      border-radius: 50%;
+      animation: k8s-spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes k8s-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Code Blocks */
+    .code-window {
+      background: var(--code-bg);
+      border: 1px solid var(--border-steel);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
+    }
+
+    .code-titlebar {
+      background: #101c26;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-steel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .code-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .code-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #3d5869;
+    }
+    .code-dots span:nth-child(1) { background: #e3342f; }
+    .code-dots span:nth-child(2) { background: #f1b748; }
+    .code-dots span:nth-child(3) { background: #38c172; }
+
+    pre.code-block {
+      padding: 18px 22px;
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 1.15vw, 16px);
+      line-height: 1.55;
+      color: #e6edf3;
+      overflow-x: auto;
+      tab-size: 4;
+    }
+
+    .hl-kw { color: #ff7b72; font-weight: 600; }
+    .hl-fn { color: #d2a8ff; }
+    .hl-str { color: #a5d6ff; }
+    .hl-cmt { color: #6e8694; font-style: italic; }
+    .hl-num { color: #f1b748; }
+    .hl-cls { color: #79c0ff; }
+    .hl-dec { color: #ffa657; }
+    .hl-line {
+      display: block;
+      margin: 0 -22px;
+      padding: 0 22px;
+      background: rgba(56, 193, 114, 0.14);
+      border-left: 3px solid var(--status-passed);
+    }
+    .hl-line-warn {
+      display: block;
+      margin: 0 -22px;
+      padding: 0 22px;
+      background: rgba(241, 183, 72, 0.14);
+      border-left: 3px solid var(--status-running);
+    }
+
+    /* District Showcase Cards */
+    .district-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-steel);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .district-img {
+      height: 140px;
+      background-size: cover;
+      background-position: center;
+      border-bottom: 1px solid var(--border-steel);
+      position: relative;
+    }
+
+    .district-tag {
+      position: absolute;
+      bottom: 8px;
+      left: 10px;
+      background: rgba(8, 15, 23, 0.88);
+      border: 1px solid var(--border-bright);
+      padding: 3px 10px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+    }
+
+    .district-body {
+      padding: 16px 18px;
+      font-size: 14px;
+      color: #cdd9df;
+      line-height: 1.55;
+    }
+
+    /* Architecture Pipeline Step Boxes */
+    .arch-flow {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .arch-node {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-steel);
+      border-top: 3px solid var(--border-bright);
+      padding: 16px 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .arch-node.python-node {
+      border-top-color: var(--status-running);
+      background: rgba(241, 183, 72, 0.06);
+    }
+
+    .arch-node.pass-node {
+      border-top-color: var(--status-passed);
+      background: rgba(56, 193, 114, 0.07);
+    }
+
+    .arch-step-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-gold);
+      letter-spacing: 1.5px;
+    }
+
+    .arch-node h4 {
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .arch-node p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .arch-node code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #a5d6ff;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 3px 6px;
+      border-radius: 2px;
+      margin-top: auto;
+    }
+
+    /* Interactive Demo Overlay Replica */
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .k8s-btn {
+      background: var(--text-main);
+      color: #12181d;
+      border: 1px solid transparent;
+      padding: 10px 18px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .k8s-btn:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .k8s-btn.secondary {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-bright);
+    }
+
+    .k8s-btn.active-sim {
+      outline: 2px solid var(--accent-gold);
+      outline-offset: 2px;
+    }
+
+    /* Partner Logos Row */
+    .partner-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .partner-row img {
+      height: 54px;
+      width: auto;
+      background: #fff;
+      padding: 6px;
+      border-radius: 3px;
+    }
+
+    .partner-row img.k8s-svg {
+      background: transparent;
+      padding: 0;
+      height: 50px;
+    }
+
+    /* Speaker Notes Drawer */
+    .speaker-notes {
+      display: none;
+      position: fixed;
+      bottom: 48px;
+      left: 0;
+      right: 0;
+      background: rgba(7, 13, 19, 0.96);
+      border-top: 2px solid var(--status-running);
+      padding: 16px 64px;
+      z-index: 30;
+      color: var(--accent-gold);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .speaker-notes.visible {
+      display: block;
+    }
+
+    /* Bottom Navigation Bar */
+    .hud-bottombar {
+      height: 46px;
+      padding: 0 32px;
+      background: rgba(13, 23, 32, 0.94);
+      border-top: 1px solid var(--border-steel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--status-passed);
+      transition: width 0.25s ease;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: var(--bg-panel);
+      color: var(--text-main);
+      border: 1px solid var(--border-steel);
+      padding: 5px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--border-bright);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(86, 182, 194, 0.15);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    @media (max-width: 1024px) {
+      .grid-2, .grid-3, .grid-asym, .grid-code-focus {
+        grid-template-columns: 1fr;
+      }
+      .arch-flow {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .slide {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-viewport">
+    <!-- Top Tactical HUD Bar -->
+    <header class="hud-topbar">
+      <div class="hud-brand">
+        <img src="../hkzero/assets/icons/kubernetes-logo.svg" alt="Kubernetes Logo" />
+        <span>PYCON // 從港域時空到 KUBERNETES：將香港遊戲世界化身雲原生學習平台</span>
+      </div>
+      <div class="hud-status-pill">
+        <span class="hud-dot"></span>
+        <span id="hud-mission-label">MISSION 00: BRIEFING</span>
+      </div>
+    </header>
+
+    <!-- Slides Stage -->
+    <main class="slides-stage" id="slides-stage">
+
+      <!-- ====================================================================
+           SLIDE 1: TITLE SLIDE
+           ==================================================================== -->
+      <section class="slide active" data-mission="MISSION 00: BRIEFING" data-notes="Welcome everyone! Today I'm excited to share '從港域時空到 Kubernetes：將香港遊戲世界化身雲原生學習平台' — how we turned dry Kubernetes command-line labs and exams into a 3D Cyberpunk action game set in Hong Kong, powered under the hood by Serverless Python, Lambda Durable Functions, and pytest.">
+        <div class="slide-bg" style="background-image: url('../hkzero/assets/illustrations/og-hong-kong-zero-v3.jpg'); opacity: 0.32;"></div>
+        <div class="slide-bg-overlay"></div>
+        <div class="slide-content">
+          <div class="k8s-card" style="max-width: 1020px; padding: 42px 48px;">
+            <div class="k8s-header">
+              <div class="k8s-tagline">
+                <span class="k8s-red-bar"></span>
+                <span>PYCON TALK // CLOUD-NATIVE &amp; DEVOPS EDUCATION WITH PYTHON</span>
+              </div>
+              <h1 class="slide-title" tabindex="-1">從港域時空到 Kubernetes：<br/>將香港遊戲世界化身雲原生學習平台</h1>
+              <div class="slide-subtitle">From Hong Kong Zero to Kubernetes: Turning a 3D Hong Kong Game World into a Cloud-Native Learning Platform with Python &amp; <code>pytest</code></div>
+            </div>
+
+            <div class="k8s-status-box passed" style="margin: 24px 0;">
+              <div>
+                <div style="font-weight: 700; color: #fff; letter-spacing: 1px;">SPEAKER // CYRUS WONG</div>
+                <div style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">
+                  Hong Kong Institute of Information Technology (HKIIT) &bull; Open Source Creator of <code>k8s-game-platform</code>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-top: 24px;">
+              <div class="partner-row" style="margin-top: 0;">
+                <img class="k8s-svg" src="../hkzero/assets/icons/kubernetes-logo.svg" alt="Kubernetes" />
+                <img src="../hkzero/assets/icons/hkiit-logo.png" alt="HKIIT" />
+                <img src="../hkzero/assets/icons/it114115-logo.png" alt="IT114115" />
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); max-width: 440px; line-height: 1.5;">
+                💖 Special thanks to <strong style="color: var(--accent-gold);">Arthur &amp; the Hong Kong Zero team</strong> (<a href="https://hongkongzero.com/" target="_blank" style="color: var(--accent-gold);">hongkongzero.com</a>) for the original 3D WebGL game.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 2: THE PROBLEM
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 01: THE DEVOPS DILEMMA" data-notes="Why did we build this? Anyone who has taught Kubernetes knows the pain: students stare at YAML files and terminal errors for hours. Multiple-choice quizzes don't test real troubleshooting, and manually grading 100 live clusters is impossible.">
+        <div class="slide-bg" style="background-image: url('../hkzero/assets/illustrations/defeat-v1.jpg');"></div>
+        <div class="slide-bg-overlay"></div>
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>MISSION 01 // THE PROBLEM WITH TEACHING CLOUD &amp; KUBERNETES</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Why Traditional DevOps Labs &amp; Exams Fail Students</h2>
+          </div>
+
+          <div class="grid-2">
+            <div class="k8s-card">
+              <h3>❌ The Old Way: Terminal Fatigue</h3>
+              <ul>
+                <li><strong>Passive Tutorials:</strong> Copy-pasting YAML snippets without understanding why Pods crash.</li>
+                <li><strong>Paper Exams Miss the Mark:</strong> Multiple-choice questions cannot measure real-world <code>kubectl</code> debugging under pressure.</li>
+                <li><strong>Slow Feedback Loops:</strong> Waiting days for instructors to grade lab screenshots kills motivation.</li>
+                <li><strong>Easy to Copy:</strong> Static lab instructions mean one student solves it and shares the YAML file.</li>
+              </ul>
+            </div>
+
+            <div class="k8s-card" style="border-color: var(--status-passed);">
+              <h3>🎮 The Vision: Infrastructure as an Action Game</h3>
+              <ul>
+                <li><strong>Real Clusters, Real Gameplay:</strong> Students operate a live Kubernetes cluster (Minikube / Cloud) while playing a 3D browser game.</li>
+                <li><strong>Combat Drives Verification:</strong> Defeating an enemy triggers a real-time check of their cluster via WebSockets.</li>
+                <li><strong>Python as the Referee:</strong> Repurpose <code>pytest</code> + <code>Jinja2</code> as a dynamic, anti-cheating cloud grading engine.</li>
+                <li><strong>Instant Sub-Second UX:</strong> Pass the check to unpause the mission and clear the district!</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 3: HONG KONG ZERO OVERVIEW
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 02: HONG KONG ZERO" data-notes="Enter Hong Kong Zero! Originally created by Arthur as a stunning 3D WebGL reconstruction of Hong Kong streets, we adapted it as an educational client for our Kubernetes game platform. Students fight through Causeway Bay, Mong Kok, and Tsim Sha Tsui.">
+        <div class="slide-bg" style="background-image: url('../hkzero/assets/illustrations/district-causeway-bay-v1.jpg');"></div>
+        <div class="slide-bg-overlay"></div>
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>MISSION 02 // THE 3D WEBGL EXERCISE CLIENT</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Hong Kong Zero (港域時空) Meets Kubernetes</h2>
+            <div class="slide-subtitle">Fighting Monsters in Causeway Bay, Mong Kok &amp; Tsim Sha Tsui Powered by Live Cluster State</div>
+          </div>
+
+          <div class="grid-3" style="margin-bottom: 22px;">
+            <div class="district-card">
+              <div class="district-img" style="background-image: url('../hkzero/assets/illustrations/district-causeway-bay-v1.jpg');">
+                <span class="district-tag">District 01 // Causeway Bay</span>
+              </div>
+              <div class="district-body">
+                <strong>SOGO Crossing:</strong> Players configure a per-kill K8s verification probability (10%–100%, default 50%) before starting the mission.
+              </div>
+            </div>
+
+            <div class="district-card">
+              <div class="district-img" style="background-image: url('../hkzero/assets/illustrations/district-mong-kok-v3.jpg');">
+                <span class="district-tag">District 02 // Mong Kok</span>
+              </div>
+              <div class="district-body">
+                <strong>Player-Caused Kill Hook:</strong> Only real player kills (<code>window.onMonsterKilled</code>) pause the 3D loop and fire a WebSocket check.
+              </div>
+            </div>
+
+            <div class="district-card">
+              <div class="district-img" style="background-image: url('../hkzero/assets/illustrations/district-tsim-sha-tsui-v1.jpg');">
+                <span class="district-tag">District 03 // Tsim Sha Tsui</span>
+              </div>
+              <div class="district-body">
+                <strong>Tactical HUD Overlay:</strong> Cyberpunk modal displays live grading telemetry, task instructions, and S3 diagnostic reports.
+              </div>
+            </div>
+          </div>
+
+          <div class="k8s-status-box running">
+            <div>
+              <strong>How the Game Loop Connects to K8s:</strong> Kill Enemy &rarr; Pause WebGL Engine &rarr; Send WebSocket Event &rarr; Python Grades Cluster &rarr; Unpause &amp; Continue!
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 4: LIVE DEMO & INTERACTIVE HUD SIMULATOR
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 02: LIVE COMBAT DEMO" data-notes="Let's see how this looks in action! Here is the actual Tactical Overlay CSS from HK Zero. You can click the buttons here to simulate what happens when a player kills a monster: first it spins in Amber while Python checks the cluster, flashes Red with an S3 pytest report if broken, and turns Green when fixed!">
+        <div class="slide-bg" style="background-image: url('../hkzero/assets/illustrations/briefing-boss-mong-kok-v7.jpg');"></div>
+        <div class="slide-bg-overlay"></div>
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>LIVE DEMO // IN-GAME TACTICAL OVERLAY SIMULATION</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Interactive Demo: What Happens on <code>window.onMonsterKilled</code></h2>
+          </div>
+
+          <div class="grid-asym">
+            <!-- Left: Interactive Replica of HK Zero K8s Overlay -->
+            <div>
+              <div class="sim-controls">
+                <button class="k8s-btn active-sim" onclick="setSimState('running', this)">1. Monster Killed (RUNNING)</button>
+                <button class="k8s-btn secondary" onclick="setSimState('failed', this)">2. Cluster Broken (FAILED)</button>
+                <button class="k8s-btn secondary" onclick="setSimState('passed', this)">3. After kubectl Fix (PASSED)</button>
+              </div>
+
+              <div class="k8s-card" id="sim-overlay-card" style="border-color: var(--border-bright);">
+                <div class="k8s-header" style="margin-bottom: 14px; padding-bottom: 12px;">
+                  <div class="k8s-tagline">
+                    <span class="k8s-red-bar"></span>
+                    <span>KUBERNETES TACTICAL ASSESSMENT // GAME01</span>
+                  </div>
+                  <div style="font-size: 22px; font-weight: 700; color: #fff; margin-top: 6px;" id="sim-title">
+                    ⏳ Evaluating Cluster State...
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" id="sim-sub">
+                    TASK 03: EXPOSE NGINX DEPLOYMENT ON NODEPORT 30080
+                  </div>
+                </div>
+
+                <div class="k8s-status-box running" id="sim-status-box">
+                  <div class="k8s-spinner" id="sim-spinner"></div>
+                  <div>
+                    <div style="font-weight: 700; color: #fff;" id="sim-status-heading">RUNNING PYTEST PHASE: 05_check</div>
+                    <div style="font-size: 13px; color: #cdd9df; margin-top: 4px;" id="sim-status-desc">
+                      Connecting to student cluster endpoint and verifying Pod readiness &amp; Service selectors...
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+                  <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);" id="sim-footer-meta">
+                    WS: ONLINE &bull; CHANCE: 50% &bull; ATTEMPT: 1/3
+                  </span>
+                  <a href="../hkzero/index.html" target="_blank" class="k8s-btn">🚀 Launch Live HK Zero Client</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Client Bridge Code -->
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>hkzero/k8s-bridge.js (Lines 214–229 &amp; 639–653)</span>
+                <span class="badge">Verbatim Code</span>
+              </div>
+              <pre class="code-block"><span class="hl-cmt">// Lines 639–653: Hook into 3D game's monster kill event</span>
+window.<span class="hl-fn">onMonsterKilled</span> = <span class="hl-kw">function</span> (enemy, context = {}) {
+  <span class="hl-kw">if</span> (context.playerKill === <span class="hl-kw">false</span>) <span class="hl-kw">return</span>;
+  <span class="hl-kw">if</span> (isChecking || pendingTriggers.<span class="hl-fn">some</span>(t =&gt; t.actionType === <span class="hl-str">'kill-thing'</span>)) <span class="hl-kw">return</span>;
+  <span class="hl-kw">if</span> (Math.<span class="hl-fn">random</span>() &gt;= killCheckChance) <span class="hl-kw">return</span>;
+<span class="hl-line">  <span class="hl-fn">sendTrigger</span>(<span class="hl-str">'kill-thing'</span>, enemy);</span>
+};
+
+<span class="hl-cmt">// Lines 214–229: flushTriggerQueue() pauses WebGL &amp; sends WS frame</span>
+<span class="hl-line"><span class="hl-fn">pauseGame</span>();</span>
+<span class="hl-fn">showRunningState</span>(<span class="hl-str">`Triggered by ${trigger.actionType}. Connecting to Kubernetes...`</span>);
+<span class="hl-line">ws.<span class="hl-fn">send</span>(JSON.<span class="hl-fn">stringify</span>({</span>
+<span class="hl-line">  action: <span class="hl-str">'talk'</span>, apiKey: config.apiKey, game: config.game, npc: config.npc</span>
+<span class="hl-line">}));</span></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 5: WHY WE MOVED FROM AJAX TO WEBSOCKET + DURABLE LAMBDA
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 03: WHY WS + DURABLE LAMBDA?" data-notes="In our previous AWS Game, simple AJAX request/response worked fine because checking AWS settings via boto3 SDK takes less than a second. But Kubernetes is totally different! In K8s, grading a single action chains multiple phases—like setup + ready, or injecting chaos in challenge + verifying recovery in check. Waiting for containers to pull, schedule, and pass readiness probes easily exceeds API Gateway's hard 29-second HTTP timeout. Moving to WebSockets + AWS Lambda Durable Functions solved this completely!">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>ARCHITECTURAL EVOLUTION // AWS GAME VS. KUBERNETES GAME</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Why We Moved from AJAX to WebSocket + Lambda Durable Functions</h2>
+            <div class="slide-subtitle">Kubernetes Grading Evaluates Live Workloads &amp; Container Lifecycles—Not Just Fast SDK Metadata</div>
+          </div>
+
+          <div class="grid-3" style="margin-bottom: 20px;">
+            <!-- Column 1: Previous AWS Game -->
+            <div class="k8s-card" style="border-top: 3px solid var(--border-bright);">
+              <h3>☁️ Previous AWS Game: Simple AJAX</h3>
+              <ul>
+                <li><strong>Fast SDK Lookups:</strong> Grading AWS labs only needed control-plane reads (<code>s3.get_bucket_policy</code>, <code>ec2.describe_instances</code>).</li>
+                <li><strong>Sub-Second Latency:</strong> <code>boto3</code> API calls return in <strong>100–800ms</strong>.</li>
+                <li><strong>Synchronous HTTP Worked:</strong> Simple <code>fetch('/task')</code> request/response easily finished well under API Gateway limits.</li>
+              </ul>
+            </div>
+
+            <!-- Column 2: Why K8s Broke AJAX -->
+            <div class="k8s-card" style="border-top: 3px solid var(--status-failed);">
+              <h3>💥 Why Kubernetes Broke AJAX</h3>
+              <ul>
+                <li><strong>Real Workload Lifecycles:</strong> K8s tests must apply YAML, pull images, schedule Pods, wait for ReadinessProbes, and test live endpoints.</li>
+                <li><strong>Chained Multi-Phase Runs:</strong> One trigger chains <code>01_setup</code> + <code>02_ready</code> or <code>04_challenge</code> (chaos injection) + <code>05_check</code>.</li>
+                <li><strong>29s HTTP Timeout Wall:</strong> Multi-phase <code>pytest</code> runs take <strong>15–60+ seconds</strong>, hitting API Gateway's hard <code>504 Gateway Timeout</code>!</li>
+              </ul>
+            </div>
+
+            <!-- Column 3: New WS + Durable Solution -->
+            <div class="k8s-card" style="border-top: 3px solid var(--status-passed);">
+              <h3>⚡ New: WS + Durable Functions</h3>
+              <ul>
+                <li><strong>Instant Async Hand-Off:</strong> <code>game-ws-handler</code> validates &amp; queues the job via <code>InvocationType="Event"</code> in <strong>&lt;100ms</strong>.</li>
+                <li><strong>No 29s Ceiling:</strong> <code>@durable_execution</code> runs long multi-phase <code>pytest</code> suites reliably with checkpointed state.</li>
+                <li><strong>Live Phase Streaming:</strong> Pushes real-time phase updates (<code>_push_game_update</code>) + ETA estimates before the final callback!</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="k8s-status-box running" style="margin-top: 8px;">
+            <div>
+              <strong>The Core Difference:</strong> In an AWS game, grading is a <strong>200ms SDK metadata read</strong> (<code>boto3</code>). In a Kubernetes game, grading is a <strong>15–120s real-world chaos &amp; reconciliation test</strong> against live containers!
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 6: CODE PROOF - WHY K8S TAKES 60S+ & HOW DURABLE LAMBDA SOLVES IT
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 03: CODE COMPARISON" data-notes="Look at the actual Python code from Task 681 (Deployment Self-Healing) on the left: Phase 04 deletes a live Pod with kubectl, and Phase 05 loops for up to 60 seconds waiting for the ReplicaSet to heal! That immediately blows past a 29-second AJAX timeout. On the right is how we solve it: async Event invocation + Durable Lambda chaining the phases while streaming live WebSocket updates!">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>CODE PROOF // SELF-HEALING K8S TEST VS. ASYNC DURABLE EXECUTION</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">In Code: Why K8s Breaks 29s AJAX &amp; How Durable Python Solves It</h2>
+          </div>
+
+          <div class="grid-2">
+            <!-- Left: Real K8s Test Code -->
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-game-rule/.../681_deployment_self_healing_beginner/</span>
+                <span class="badge">15–120s K8s Test</span>
+              </div>
+              <pre class="code-block" style="padding: 16px 20px; font-size: 13.5px;"><span class="hl-cmt"># 1. Phase 04 (test_04_challenge.py): Delete a live Pod to trigger healing!</span>
+delete_result = <span class="hl-fn">run_kubectl_command</span>(
+    kube_config,
+<span class="hl-line-warn">    <span class="hl-str">f"kubectl delete pod <span class="hl-cls">{pod_name}</span> -n <span class="hl-cls">{json_input['namespace']}</span> --wait=false"</span>,</span>
+)
+
+<span class="hl-cmt"># 2. Phase 05 (test_05_check.py): Poll up to 60s for ReplicaSet reconciliation!</span>
+max_wait, interval = <span class="hl-num">60</span>, <span class="hl-num">15</span>
+time.<span class="hl-fn">sleep</span>(<span class="hl-num">5</span>)
+
+<span class="hl-kw">for</span> attempt <span class="hl-kw">in</span> <span class="hl-fn">range</span>(max_wait // interval):
+    <span class="hl-cmt"># Query live Deployment, ReplicaSet, and Pod readiness on student cluster</span>
+<span class="hl-line">    <span class="hl-kw">if</span> available == <span class="hl-num">3</span> <span class="hl-kw">and</span> ready == <span class="hl-num">3</span> <span class="hl-kw">and</span> <span class="hl-fn">len</span>(pods) == <span class="hl-num">3</span> <span class="hl-kw">and</span> ready_pods == <span class="hl-num">3</span>:</span>
+<span class="hl-line">        <span class="hl-kw">return</span>  <span class="hl-cmt"># ✅ Self-healing verified!</span></span>
+<span class="hl-line-warn">    time.<span class="hl-fn">sleep</span>(interval)  <span class="hl-cmt"># 💥 Exceeds API Gateway's 29s AJAX timeout!</span></span></pre>
+            </div>
+
+            <!-- Right: Durable Invoker + Multi-Phase Streaming -->
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>common/durable_invoker.py &amp; game-command-handler/app.py</span>
+                <span class="badge">WS + Durable Fix</span>
+              </div>
+              <pre class="code-block" style="padding: 16px 20px; font-size: 13.5px;"><span class="hl-cmt"># 1. Non-blocking async hand-off (&lt;100ms) from game-ws-handler</span>
+response = lambda_client.<span class="hl-fn">invoke</span>(
+    FunctionName=function_name,     <span class="hl-cmt"># Qualified Durable Function ARN</span>
+<span class="hl-line">    InvocationType=<span class="hl-str">"Event"</span>,         <span class="hl-cmt"># Returns immediately without waiting</span></span>
+    Payload=json.<span class="hl-fn">dumps</span>(payload).<span class="hl-fn">encode</span>(<span class="hl-str">"utf-8"</span>),
+)
+
+<span class="hl-cmt"># 2. Inside @durable_execution: Chain Challenge -&gt; Check &amp; stream WS status</span>
+<span class="hl-kw">def</span> <span class="hl-fn">_execute_game_phase</span>(email, game, task_id, endpoint, conn_id, state, manifest):
+<span class="hl-line-warn">    <span class="hl-fn">_push_game_update</span>(endpoint, conn_id, <span class="hl-str">"talk"</span>, <span class="hl-fn">_running_payload</span>(state, manifest))</span>
+    <span class="hl-kw">return</span> task_service.<span class="hl-fn">execute_phase</span>(email, game, task_id)
+
+<span class="hl-kw">if</span> state.current_phase_id == <span class="hl-str">"challenge"</span>:
+    result, manifest, state, _ = <span class="hl-fn">_execute_game_phase</span>(...)      <span class="hl-cmt"># Step A: Delete Pod</span>
+    <span class="hl-fn">_advance_doom_to_playable_phase</span>(state, manifest)
+<span class="hl-line">    check_res, manifest, state, _ = <span class="hl-fn">_execute_game_phase</span>(...)   <span class="hl-cmt"># Step B: Poll 60s</span></span></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 6: END-TO-END PYTHON ARCHITECTURE
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 03: PYTHON ARCHITECTURE" data-notes="Now let's look under the hood. What happens in Python between that WebSocket message leaving the browser and the callback arriving back? Here is the 6-step serverless pipeline.">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>MISSION 03 // UNDER THE HOOD: THE SERVERLESS PYTHON PIPELINE</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">From WebSocket Event &rarr; <code>pytest</code> Runner &rarr; WebSocket Callback</h2>
+            <div class="slide-subtitle">Decoupling Fast WebSocket Ingestion from Long-Running Kubernetes Cluster Inspections</div>
+          </div>
+
+          <div class="arch-flow">
+            <div class="arch-node">
+              <span class="arch-step-num">STEP 01 // CLIENT</span>
+              <h4>HK Zero WebGL</h4>
+              <p>Pauses game on kill &amp; sends JSON frame over persistent WebSocket.</p>
+              <code>k8s-bridge.js</code>
+            </div>
+
+            <div class="arch-node python-node">
+              <span class="arch-step-num">STEP 02 // INGEST</span>
+              <h4>WS Guard Lambda</h4>
+              <p>Validates API key, enforces cooldowns &amp; DynamoDB mutex locks.</p>
+              <code>game-ws-handler</code>
+            </div>
+
+            <div class="arch-node python-node">
+              <span class="arch-step-num">STEP 03 // DURABLE</span>
+              <h4>Command Handler</h4>
+              <p>Runs Task State Machine &amp; renders student Jinja2 variables.</p>
+              <code>@durable_execution</code>
+            </div>
+
+            <div class="arch-node python-node">
+              <span class="arch-step-num">STEP 04 // GRADER</span>
+              <h4>Pytest Subprocess</h4>
+              <p>Executes phase test suite against student K8s cluster with timeout.</p>
+              <code>common/pytest.py</code>
+            </div>
+
+            <div class="arch-node python-node">
+              <span class="arch-step-num">STEP 05 // REPORT</span>
+              <h4>S3 HTML Diagnostics</h4>
+              <p>On failure, uploads self-contained HTML report &amp; signs URL.</p>
+              <code>test_runner.py</code>
+            </div>
+
+            <div class="arch-node pass-node">
+              <span class="arch-step-num">STEP 06 // CALLBACK</span>
+              <h4>WS Push to Game</h4>
+              <p>Pushes <code>COMPLETED</code> or <code>FAILED</code> via <code>post_to_connection</code>.</p>
+              <code>boto3 apigw-mgmt</code>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 18px;">
+            <div class="k8s-status-box running" style="margin: 0;">
+              <div>
+                <strong>Why Decouple Step 2 &amp; Step 3?</strong><br/>
+                API Gateway WebSockets have a strict 29-second integration timeout, and rapid monster kills can flood the backend. Fast ingestion + async durable execution solves both!
+              </div>
+            </div>
+            <div class="k8s-status-box passed" style="margin: 0;">
+              <div>
+                <strong>Zero Polling Required:</strong><br/>
+                The browser never polls an HTTP endpoint. Python pushes real-time state transitions (<code>RUNNING</code> &rarr; <code>COMPLETED</code>) directly back down the open WebSocket connection.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 6: STAGE 1 - WEBSOCKET INGESTION & GUARDRAILS
+           ==================================================================== -->
+      <section class="slide" data-mission="STAGE 01: WEBSOCKET INGESTION" data-notes="Let's look at Stage 1 in game-ws-handler/app.py. In an action game, players shoot monsters rapidly. We use two DynamoDB repositories in Python—RequestThrottleRepository and ExecutionGuardRepository—to enforce a 2-second cooldown and a mutex lock so a student can't trigger 10 parallel pytest runs.">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>PYTHON DEEP DIVE // STAGE 1: WEBSOCKET INGESTION &amp; GUARDRAILS</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Protecting the Backend from Action-Game Spam</h2>
+          </div>
+
+          <div class="grid-code-focus">
+            <div class="k8s-card">
+              <h3>🛡️ Fast Guardrails in Python</h3>
+              <ul>
+                <li><strong>Per-Action Cooldowns:</strong> <code>talk</code> (2s), <code>status</code> (3s), <code>reset</code> (5s) prevent button mashing.</li>
+                <li><strong>Atomic Execution Locks:</strong> <code>ExecutionGuardRepository</code> acquires a DynamoDB lock scoped to <code>game#{email}#{game}#mutation</code>.</li>
+                <li><strong>Instant Inline Feedback:</strong> Sends <code>RUNNING</code> status back over the socket immediately before queueing the durable worker.</li>
+              </ul>
+            </div>
+
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-grader-api/game-ws-handler/app.py (Lines 153–206)</span>
+                <span class="badge">Verbatim Code</span>
+              </div>
+              <pre class="code-block"><span class="hl-cmt"># 1. Atomic DynamoDB Cooldown Throttle (2s for 'talk')</span>
+<span class="hl-line"><span class="hl-kw">if not</span> request_throttle_repo.<span class="hl-fn">claim_request</span>(</span>
+<span class="hl-line">    throttle_scope, email=email, channel=<span class="hl-str">"game_ws"</span>,</span>
+<span class="hl-line">    action=action, cooldown_seconds=cooldown_seconds,</span>
+<span class="hl-line">):</span>
+    <span class="hl-fn">_push_inline_game_status</span>(event, action, {<span class="hl-str">"status"</span>: <span class="hl-str">"ERROR"</span>, ...})
+    <span class="hl-kw">return</span> <span class="hl-fn">_response</span>(<span class="hl-num">200</span>, payload)
+
+<span class="hl-cmt"># 2. Acquire Per-Student Execution Lease (TTL 180s) &amp; Queue Durable Function</span>
+<span class="hl-line"><span class="hl-kw">if not</span> execution_guard_repo.<span class="hl-fn">acquire</span>(</span>
+<span class="hl-line">    execution_guard_key, email=email, channel=<span class="hl-str">"game_ws"</span>,</span>
+<span class="hl-line">    action=action, ttl_seconds=guard_ttl_seconds,</span>
+<span class="hl-line">):</span>
+    <span class="hl-fn">_push_inline_game_status</span>(event, action, {<span class="hl-str">"status"</span>: <span class="hl-str">"ERROR"</span>, ...})
+    <span class="hl-kw">return</span> <span class="hl-fn">_response</span>(<span class="hl-num">200</span>, payload)
+
+<span class="hl-line-warn">request_id = <span class="hl-fn">_queue_game_command</span>({<span class="hl-str">"action"</span>: action, <span class="hl-str">"connection_id"</span>: connection_id, ...})</span>
+execution_guard_repo.<span class="hl-fn">attach_request_id</span>(execution_guard_key, request_id)</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 9: WHAT IS AWS LAMBDA DURABLE FUNCTIONS & FEATURES WE USE
+           ==================================================================== -->
+      <section class="slide" data-mission="STAGE 02A: LAMBDA DURABLE FUNCTIONS" data-notes="Many Python developers haven't seen AWS Lambda Durable Functions yet! It lets you write stateful, long-running workflows directly in standard Python using decorators—without writing Step Functions JSON! Under the hood, AWS checkpoints every @durable_step. Here are the exact features we use in our SAM template and Python handler.">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>NEW SERVERLESS PRIMITIVE // AWS LAMBDA DURABLE FUNCTIONS</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">What is AWS Lambda Durable Functions &amp; Features We Use</h2>
+            <div class="slide-subtitle">Stateful Checkpoint-and-Replay Workflows in Pure Python — Without Step Functions ASL YAML</div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom: 18px;">
+            <div class="k8s-card" style="border-top: 3px solid var(--status-running);">
+              <h3>⚡ What is a Lambda Durable Function?</h3>
+              <ul>
+                <li><strong>Pure Python Workflows:</strong> Build long-running, stateful orchestrations using <code>aws_durable_execution_sdk_python</code> directly inside Lambda.</li>
+                <li><strong>Checkpoint &amp; Replay Engine:</strong> Each <code>context.step()</code> call checkpoints its return value. On retry or resume, completed steps replay from history without re-running side effects!</li>
+                <li><strong>1-Hour Execution Window:</strong> Supports <code>ExecutionTimeout: 3600</code> (1 hr) and <code>RetentionPeriodInDays: 14</code> for built-in execution audit logs.</li>
+              </ul>
+            </div>
+
+            <div class="k8s-card" style="border-top: 3px solid var(--status-passed);">
+              <h3>🛠️ 4 Key Features We Use in <code>k8s-grader-api</code></h3>
+              <ul>
+                <li><strong>1. <code>DurableConfig</code> + <code>:live</code> Alias:</strong> SAM auto-publishes a versioned <code>:live</code> alias required for deterministic durable replay.</li>
+                <li><strong>2. <code>@durable_execution</code> Entrypoint:</strong> Injects <code>DurableContext</code> into <code>lambda_handler</code> to manage step state.</li>
+                <li><strong>3. <code>@durable_step</code> Checkpointing:</strong> Wraps <code>execute_game_command_step</code> so multi-phase K8s grading runs as an atomic step.</li>
+                <li><strong>4. Guaranteed Lock Release:</strong> <code>try / finally</code> ensures <code>execution_guard_repo.release()</code> always unlocks the student session.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-grader-api/template.yaml (AWS SAM)</span>
+                <span class="badge">DurableConfig</span>
+              </div>
+              <pre class="code-block" style="padding: 12px 18px; font-size: 12.5px;"><span class="hl-cls">GameCommandFunction</span>:
+  <span class="hl-kw">Type</span>: AWS::Serverless::Function
+  <span class="hl-kw">Properties</span>:
+    <span class="hl-kw">CodeUri</span>: game-command-handler/
+    <span class="hl-kw">Timeout</span>: <span class="hl-num">360</span>
+<span class="hl-line">    <span class="hl-kw">AutoPublishAlias</span>: <span class="hl-str">live</span></span>
+<span class="hl-line">    <span class="hl-kw">DurableConfig</span>:</span>
+<span class="hl-line">      <span class="hl-kw">ExecutionTimeout</span>: <span class="hl-num">3600</span>      <span class="hl-cmt"># 1-hour durable workflow horizon</span></span>
+<span class="hl-line">      <span class="hl-kw">RetentionPeriodInDays</span>: <span class="hl-num">14</span>   <span class="hl-cmt"># 14-day checkpoint &amp; audit retention</span></span>
+    <span class="hl-kw">Policies</span>:
+      - arn:aws:iam::aws:policy/service-role/<span class="hl-str">AWSLambdaBasicDurableExecutionRolePolicy</span></pre>
+            </div>
+
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-grader-api/game-command-handler/app.py</span>
+                <span class="badge">Python SDK</span>
+              </div>
+              <pre class="code-block" style="padding: 12px 18px; font-size: 12.5px;"><span class="hl-dec">@durable_step</span>
+<span class="hl-kw">def</span> <span class="hl-fn">execute_game_command_step</span>(step_context, action, email, game, npc, endpoint, conn_id):
+    <span class="hl-kw">return</span> <span class="hl-fn">execute_game_command</span>(action, email, game, npc, endpoint, conn_id)
+
+<span class="hl-dec">@durable_execution</span>
+<span class="hl-kw">def</span> <span class="hl-fn">lambda_handler</span>(event: Dict[str, Any], context: DurableContext) -&gt; Dict[str, Any]:
+    <span class="hl-kw">try</span>:
+<span class="hl-line">        payload = context.<span class="hl-fn">step</span>(</span>
+<span class="hl-line">            <span class="hl-fn">execute_game_command_step</span>(action, email, game, npc, endpoint, conn_id)</span>
+<span class="hl-line">        )</span>
+    <span class="hl-kw">finally</span>:
+<span class="hl-line-warn">        execution_guard_repo.<span class="hl-fn">release</span>(execution_guard_key)  <span class="hl-cmt"># Always unlock!</span></span>
+    <span class="hl-fn">_push_game_update</span>(endpoint, conn_id, action, payload)</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 10: STAGE 2B - 6-PHASE TASK STATE MACHINE
+           ==================================================================== -->
+      <section class="slide" data-mission="STAGE 02B: TASK STATE MACHINE" data-notes="Inside that durable step, how do we structure a Kubernetes exercise? Every exercise is a 6-phase state machine: setup, ready, answer, challenge, check, and cleanup.">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>PYTHON DEEP DIVE // STAGE 2: MULTI-PHASE K8S STATE MACHINE</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Orchestrating the 6-Phase K8s Lifecycle Inside the Durable Step</h2>
+          </div>
+
+          <div class="grid-code-focus">
+            <div class="k8s-card">
+              <h3>⚙️ The 6-Phase Task Lifecycle</h3>
+              <ul>
+                <li><code>01_setup</code> &rarr; Prepare namespace / break cluster state</li>
+                <li><code>02_ready</code> &rarr; Verify lab environment is healthy</li>
+                <li><code>03_answer</code> &rarr; Check student's initial deployment</li>
+                <li><code>04_challenge</code> &rarr; Inject chaos / delete Pods</li>
+                <li><code>05_check</code> &rarr; Verify self-healing &amp; resilience</li>
+                <li><code>06_cleanup</code> &rarr; Teardown resources &amp; award score</li>
+              </ul>
+            </div>
+
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-grader-api/game-command-handler/app.py</span>
+                <span class="badge">State Machine</span>
+              </div>
+              <pre class="code-block"><span class="hl-kw">def</span> <span class="hl-fn">_handle_game_talk</span>(email: str, game: str, npc: str, endpoint: str, conn_id: str):
+    <span class="hl-cmt"># 1. Materialize student kubeconfig into /tmp for kubectl &amp; K8s Python client</span>
+    access_config = <span class="hl-fn">extract_k8s_access_config</span>(<span class="hl-fn">get_user_data</span>(email))
+<span class="hl-line">    <span class="hl-fn">write_k8s_access_files</span>(access_config)</span>
+
+    <span class="hl-cmt"># 2. Route HK Zero &amp; DOOM interactive kills through multi-phase runner</span>
+<span class="hl-line">    <span class="hl-kw">if</span> <span class="hl-fn">is_interactive_task_source</span>(npc):  <span class="hl-cmt"># HKZERO_TASK_SOURCE / DOOM_TASK_SOURCE</span></span>
+<span class="hl-line">        <span class="hl-kw">return</span> <span class="hl-fn">_handle_doom_talk</span>(</span>
+<span class="hl-line">            email, game, current_task, endpoint, conn_id, state, manifest</span>
+<span class="hl-line">        )</span></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 8: STAGE 3 - DYNAMIC JINJA2 ANTI-CHEATING
+           ==================================================================== -->
+      <section class="slide" data-mission="STAGE 03: DYNAMIC JINJA2" data-notes="How do we stop Student A from sending their YAML file to Student B? When a task starts, Python generates randomized session variables using Jinja2 and stores them in DynamoDB. Both the mission briefing shown in HK Zero and the pytest assertions use those exact student-specific variables!">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>PYTHON DEEP DIVE // STAGE 3: ANTI-CHEATING WITH JINJA2</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Dynamic Per-Student Scenarios via <code>Jinja2</code> + DynamoDB</h2>
+          </div>
+
+          <div class="grid-2">
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-game-rule/tests/conftest.py</span>
+                <span class="badge">Seed Generator</span>
+              </div>
+              <pre class="code-block"><span class="hl-kw">from</span> jinja2 <span class="hl-kw">import</span> Environment
+<span class="hl-kw">from</span> names_generator <span class="hl-kw">import</span> generate_name
+
+<span class="hl-line">func_dict = {</span>
+<span class="hl-line">    <span class="hl-str">"student_id"</span>: <span class="hl-kw">lambda</span>: <span class="hl-str">"123456789"</span>,</span>
+<span class="hl-line">    <span class="hl-str">"random_name"</span>: <span class="hl-kw">lambda</span> seed=<span class="hl-num">0</span>: <span class="hl-fn">generate_name</span>(seed=seed),</span>
+<span class="hl-line">    <span class="hl-str">"random_number"</span>: <span class="hl-kw">lambda</span> a, b: <span class="hl-fn">str</span>(random.<span class="hl-fn">randint</span>(a, b)),</span>
+<span class="hl-line">    <span class="hl-str">"base64_encode"</span>: base64_encode,</span>
+<span class="hl-line">}</span>
+
+<span class="hl-kw">def</span> <span class="hl-fn">render</span>(template: str) -&gt; str:
+    env = <span class="hl-fn">Environment</span>()
+    jinja_template = env.<span class="hl-fn">from_string</span>(template)
+    jinja_template.globals.<span class="hl-fn">update</span>(func_dict)
+    <span class="hl-kw">return</span> jinja_template.<span class="hl-fn">render</span>()</pre>
+            </div>
+
+            <div class="k8s-card">
+              <h3>🎲 Every Student Gets a Unique Mission</h3>
+              <ul>
+                <li><strong>Generated Once per Session:</strong> When a task initializes, Jinja2 renders variables like <code>pod_name: "keenbanach"</code> or <code>port: "31492"</code> and persists them in DynamoDB <code>session_data</code>.</li>
+                <li><strong>Injected into Game HUD:</strong> The NPC briefing in HK Zero renders: <em>"Deploy pod <code>keenbanach</code> in namespace <code>ns-842</code>"</em>.</li>
+                <li><strong>Injected into <code>pytest</code> Fixtures:</strong> The test runner loads <code>/tmp/input.json</code> via a pytest fixture and asserts those exact dynamic names on the live cluster!</li>
+              </ul>
+              <div class="k8s-status-box passed" style="margin-top: 18px;">
+                <div><strong>Result:</strong> Hardcoded YAML sharing is useless—students must learn the actual Kubernetes concepts.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 9: STAGE 4 - PYTEST AS A SERVERLESS GRADING ENGINE
+           ==================================================================== -->
+      <section class="slide" data-mission="STAGE 04: PYTEST ENGINE" data-notes="Here is my favorite part for a PyCon audience: we didn't write a custom test framework from scratch. Instead, we run pytest itself inside AWS Lambda via subprocess.run! Why? Because pytest already has fixtures, timeouts, fail-fast (-x), and self-contained HTML reports!">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>PYTHON DEEP DIVE // STAGE 4: PYTEST AS A GRADING MICROSERVICE</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Running <code>pytest</code> Programmatically Inside AWS Lambda</h2>
+          </div>
+
+          <div class="grid-code-focus">
+            <div class="k8s-card">
+              <h3>🧪 Why <code>pytest</code> is the Ultimate Grader</h3>
+              <ul>
+                <li><strong>Fail-Fast (<code>-x</code>):</strong> Stops at the first broken assertion so the game gets feedback in seconds.</li>
+                <li><strong>Self-Contained Reports:</strong> <code>--html=/tmp/report.html</code> packages full tracebacks and cluster diffs into a single file.</li>
+                <li><strong>Smart S3 Uploads:</strong> Reports are uploaded to S3 with presigned URLs <em>only when tests fail</em>, keeping passed checks blazingly fast.</li>
+                <li><strong>Exit Code Mapping:</strong> Maps <code>completed.returncode</code> directly to our <code>TestResult</code> enum.</li>
+              </ul>
+            </div>
+
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-grader-api/common-layer/common/pytest.py</span>
+                <span class="badge">TestRunner</span>
+              </div>
+              <pre class="code-block"><span class="hl-kw">def</span> <span class="hl-fn">run_tests</span>(test_phase: GamePhrase, game: str, task: str, timeout=<span class="hl-num">30</span>) -&gt; TestResult:
+    <span class="hl-fn">get_tests</span>(game)  <span class="hl-cmt"># Download &amp; cache test archive in /tmp/{game}</span>
+    <span class="hl-kw">try</span>:
+<span class="hl-line">        completed = subprocess.<span class="hl-fn">run</span>(</span>
+<span class="hl-line">            [</span>
+<span class="hl-line">                sys.executable, <span class="hl-str">"-m"</span>, <span class="hl-str">"pytest"</span>,</span>
+<span class="hl-line">                <span class="hl-str">f"--rootdir=<span class="hl-cls">{get_root_path(game)}</span>"</span>,</span>
+<span class="hl-line">                <span class="hl-str">"--import-mode=importlib"</span>,</span>
+<span class="hl-line">                <span class="hl-str">"--html=/tmp/report.html"</span>,</span>
+<span class="hl-line">                <span class="hl-str">"--self-contained-html"</span>,</span>
+<span class="hl-line">                <span class="hl-str">"-x"</span>,  <span class="hl-cmt"># Stop on first failure for fast game UX</span></span>
+<span class="hl-line">                <span class="hl-str">f"<span class="hl-cls">{get_test_base_path(game)}</span>/<span class="hl-cls">{game}</span>/<span class="hl-cls">{task}</span>/test_<span class="hl-cls">{MAPPING[test_phase]}</span>.py"</span>,</span>
+<span class="hl-line">            ],</span>
+            env=<span class="hl-fn">build_pytest_env</span>(), timeout=timeout, check=<span class="hl-kw">False</span>
+        )
+<span class="hl-line-warn">        <span class="hl-kw">return</span> <span class="hl-fn">TestResult</span>(completed.returncode)</span>
+    <span class="hl-kw">except</span> subprocess.TimeoutExpired:
+        <span class="hl-kw">return</span> TestResult.TIME_OUT</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 10: STAGE 5 - WEBSOCKET CALLBACK TO THE BROWSER
+           ==================================================================== -->
+      <section class="slide" data-mission="STAGE 05: WEBSOCKET CALLBACK" data-notes="Once pytest finishes and returns TestResult.OK or TESTS_FAILED, how does Python wake up the paused 3D game in the student's browser? We use boto3's apigatewaymanagementapi client and post_to_connection, with a custom DecimalEncoder for DynamoDB numbers.">
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>PYTHON DEEP DIVE // STAGE 5: ASYNC WEBSOCKET CALLBACK</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">Closing the Loop with <code>apigatewaymanagementapi</code></h2>
+          </div>
+
+          <div class="grid-code-focus">
+            <div class="k8s-card">
+              <h3>📡 Pushing Verdict to WebGL</h3>
+              <ul>
+                <li><strong>Handling DynamoDB Decimals:</strong> Standard <code>json.dumps()</code> crashes on <code>Decimal</code> scores from DynamoDB; a custom <code>DecimalEncoder</code> converts them cleanly.</li>
+                <li><strong>Direct Connection Push:</strong> Uses the student's <code>connection_id</code> and callback <code>endpoint_url</code> to push JSON directly to the browser.</li>
+                <li><strong>Resilient Cleanup:</strong> Catches <code>GoneException</code> if the player closed their browser tab mid-check, and always releases the DynamoDB execution lock in <code>finally</code>.</li>
+              </ul>
+            </div>
+
+            <div class="code-window">
+              <div class="code-titlebar">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>k8s-grader-api/game-command-handler/app.py</span>
+                <span class="badge">WS Callback</span>
+              </div>
+              <pre class="code-block"><span class="hl-kw">class</span> <span class="hl-cls">DecimalEncoder</span>(json.JSONEncoder):
+    <span class="hl-kw">def</span> <span class="hl-fn">default</span>(self, obj):
+        <span class="hl-kw">if</span> <span class="hl-fn">isinstance</span>(obj, Decimal):
+            <span class="hl-kw">return</span> <span class="hl-fn">int</span>(obj) <span class="hl-kw">if</span> obj % <span class="hl-num">1</span> == <span class="hl-num">0</span> <span class="hl-kw">else</span> <span class="hl-fn">float</span>(obj)
+        <span class="hl-kw">return</span> <span class="hl-fn">super</span>().<span class="hl-fn">default</span>(obj)
+
+<span class="hl-kw">def</span> <span class="hl-fn">_send_ws_message</span>(endpoint: str, connection_id: str, payload: Dict[str, Any]):
+<span class="hl-line">    client = boto3.<span class="hl-fn">client</span>(<span class="hl-str">"apigatewaymanagementapi"</span>, endpoint_url=endpoint)</span>
+<span class="hl-line">    message = json.<span class="hl-fn">dumps</span>(payload, cls=DecimalEncoder).<span class="hl-fn">encode</span>(<span class="hl-str">"utf-8"</span>)</span>
+    <span class="hl-kw">try</span>:
+<span class="hl-line">        client.<span class="hl-fn">post_to_connection</span>(ConnectionId=connection_id, Data=message)</span>
+    <span class="hl-kw">except</span> client.exceptions.GoneException:
+        logger.<span class="hl-fn">info</span>(<span class="hl-str">"Game websocket connection %s is gone"</span>, connection_id)</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 11: ONE PYTHON BACKEND, MULTIPLE GAME WORLDS
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 04: ECOSYSTEM & IMPACT" data-notes="Because our Python grading engine communicates over a clean WebSocket protocol, Hong Kong Zero isn't the only client! The exact same Python backend powers a classic DOOM client, a 2D Isekai RPG, and an isolated Practical Exam mode.">
+        <div class="slide-bg" style="background-image: url('../hkzero/assets/illustrations/briefing-v1.jpg');"></div>
+        <div class="slide-bg-overlay"></div>
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>MISSION 04 // PLUGGABLE ARCHITECTURE &amp; CLASSROOM IMPACT</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">One Python Grader Backend, Multiple Game Worlds</h2>
+          </div>
+
+          <div class="grid-3">
+            <div class="k8s-card" style="border-top: 3px solid var(--accent-red);">
+              <h3>🏙️ Hong Kong Zero (<code>hkzero</code>)</h3>
+              <p>3D WebGL cyberpunk reconstruction of Causeway Bay, Mong Kok &amp; Tsim Sha Tsui. Monster kills trigger real-time K8s assessments.</p>
+            </div>
+
+            <div class="k8s-card" style="border-top: 3px solid var(--status-running);">
+              <h3>👹 DOOM &amp; Isekai RPG</h3>
+              <p>Also supports <code>doom.ts</code> (classic FPS in TypeScript) and <code>k8s-isekai</code> (2D RPG adventure)—all talking to the same Python WebSocket API!</p>
+            </div>
+
+            <div class="k8s-card" style="border-top: 3px solid var(--status-passed);">
+              <h3>🎓 Isolated Exam Stack</h3>
+              <p>Deploy with <code>ENV=exam ./deploy.sh</code> for locked-down practical exams, private exam codes, S3 audit trails, and teacher CSV exports.</p>
+            </div>
+          </div>
+
+          <div class="k8s-status-box passed" style="margin-top: 24px;">
+            <div>
+              <strong>Pedagogical Impact at HKIIT:</strong> Students willingly spend hours practicing <code>kubectl</code> debugging and reading <code>pytest</code> HTML tracebacks to beat the district boss—turning exam anxiety into arcade excitement.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 12: TAKEAWAYS & Q&A
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION COMPLETE: Q&A" data-notes="To wrap up: first, pytest is much more than a unit test runner—it's a phenomenal verification engine for live cloud infrastructure. Second, Serverless WebSockets + Durable Python make real-time game backends effortless. Thank you, and I'd love to take your questions!">
+        <div class="slide-bg" style="background-image: url('../hkzero/assets/illustrations/victory-v1.jpg'); opacity: 0.3;"></div>
+        <div class="slide-bg-overlay"></div>
+        <div class="slide-content">
+          <div class="k8s-header">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>MISSION COMPLETE // KEY TAKEAWAYS &amp; OPEN SOURCE</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1">3 Takeaways for Pythonistas &amp; Educators</h2>
+          </div>
+
+          <div class="grid-3" style="margin-bottom: 24px;">
+            <div class="k8s-card">
+              <h3>1. <code>pytest</code> Beyond Unit Tests</h3>
+              <p>With fixtures, <code>Jinja2</code> templating, and <code>--self-contained-html</code>, <code>pytest</code> is a turnkey engine for validating live cloud infrastructure.</p>
+            </div>
+
+            <div class="k8s-card">
+              <h3>2. Async WebSocket Pattern</h3>
+              <p>Combine fast DynamoDB mutex guards on ingest with <code>@durable_execution</code> and <code>post_to_connection</code> callbacks for lag-free game UX.</p>
+            </div>
+
+            <div class="k8s-card">
+              <h3>3. Gamify Hard Domains</h3>
+              <p>Pairing a 3D WebGL world like Hong Kong Zero with automated Python grading transforms intimidating DevOps labs into an engaging adventure.</p>
+            </div>
+          </div>
+
+          <div class="k8s-card" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; border-color: var(--status-passed);">
+            <div>
+              <div style="font-size: 20px; font-weight: 700; color: #fff;">🔗 Explore the Open-Source Platform</div>
+              <div style="font-family: var(--font-mono); font-size: 15px; color: var(--accent-gold); margin-top: 6px;">
+                github.com/wongcyrus/k8s-game-platform &bull; github.com/wongcyrus/hkzero-k8s
+              </div>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">
+                Original 3D Game by Arthur: <strong>hongkongzero.com</strong> &bull; Built with Python, Pytest, AWS SAM &amp; WebGL
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 26px; font-weight: 800; color: var(--status-passed); letter-spacing: 2px;">THANK YOU! // Q&amp;A</div>
+              <div style="font-size: 13px; color: var(--text-muted);">Cyrus Wong &bull; PyCon</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Speaker Notes Drawer (Toggle with 'S' key) -->
+    <aside class="speaker-notes" id="speaker-notes" aria-live="polite">
+      <strong>🎙️ SPEAKER NOTES:</strong> <span id="speaker-notes-text"></span>
+    </aside>
+
+    <!-- Bottom Navigation & Progress Bar -->
+    <footer class="hud-bottombar">
+      <div class="progress-track" id="progress-bar" style="width: 8.33%;"></div>
+      <div>
+        <span>KEYS: <code>&larr;</code> <code>&rarr;</code> / <code>SPACE</code> Navigate &bull; <code>S</code> Speaker Notes &bull; <code>F</code> Fullscreen</span>
+      </div>
+      <div class="nav-controls">
+        <button class="nav-btn" onclick="changeSlide(-1)" aria-label="Previous Slide">&larr; PREV</button>
+        <span id="slide-counter" style="font-family: var(--font-mono); min-width: 64px; text-align: center;">01 / 12</span>
+        <button class="nav-btn" onclick="changeSlide(1)" aria-label="Next Slide">NEXT &rarr;</button>
+        <button class="nav-btn" onclick="toggleNotes()" title="Toggle Speaker Notes (S)">NOTES [S]</button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const totalSlides = slides.length;
+      let currentIndex = 0;
+
+      const counterEl = document.getElementById('slide-counter');
+      const progressEl = document.getElementById('progress-bar');
+      const missionLabelEl = document.getElementById('hud-mission-label');
+      const notesDrawer = document.getElementById('speaker-notes');
+      const notesText = document.getElementById('speaker-notes-text');
+
+      function applySlideDOM(index) {
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === index);
+        });
+        const activeSlide = slides[index];
+        counterEl.textContent = `${String(index + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+        progressEl.style.width = `${((index + 1) / totalSlides) * 100}%`;
+        missionLabelEl.textContent = activeSlide.dataset.mission || `SLIDE ${index + 1}`;
+        notesText.textContent = activeSlide.dataset.notes || '';
+      }
+
+      function focusActiveHeading(index) {
+        const heading = slides[index].querySelector('.slide-title');
+        if (heading) {
+          heading.focus({ preventScroll: true });
+        }
+      }
+
+      window.changeSlide = function (delta) {
+        const nextIndex = Math.max(0, Math.min(totalSlides - 1, currentIndex + delta));
+        if (nextIndex === currentIndex) return;
+
+        const direction = delta > 0 ? 'forward' : 'backward';
+        currentIndex = nextIndex;
+        window.location.hash = `slide-${currentIndex + 1}`;
+
+        // Progressive enhancement with View Transitions API + Accessibility Focus Routing
+        if (!document.startViewTransition) {
+          applySlideDOM(currentIndex);
+          focusActiveHeading(currentIndex);
+          return;
+        }
+
+        const transition = document.startViewTransition({
+          update: () => applySlideDOM(currentIndex),
+          types: [direction]
+        });
+
+        transition.finished.finally(() => {
+          focusActiveHeading(currentIndex);
+        });
+      };
+
+      window.toggleNotes = function () {
+        notesDrawer.classList.toggle('visible');
+      };
+
+      // Interactive Demo Simulator on Slide 4
+      window.setSimState = function (state, btnEl) {
+        const buttons = document.querySelectorAll('.sim-controls .k8s-btn');
+        buttons.forEach(b => {
+          b.classList.remove('active-sim');
+          b.classList.add('secondary');
+        });
+        btnEl.classList.remove('secondary');
+        btnEl.classList.add('active-sim');
+
+        const titleEl = document.getElementById('sim-title');
+        const boxEl = document.getElementById('sim-status-box');
+        const spinnerEl = document.getElementById('sim-spinner');
+        const headingEl = document.getElementById('sim-status-heading');
+        const descEl = document.getElementById('sim-status-desc');
+        const metaEl = document.getElementById('sim-footer-meta');
+
+        boxEl.className = 'k8s-status-box ' + state;
+
+        if (state === 'running') {
+          titleEl.textContent = '⏳ Evaluating Cluster State...';
+          spinnerEl.style.display = 'block';
+          headingEl.textContent = 'RUNNING PYTEST PHASE: 05_check';
+          descEl.textContent = 'Connecting to student cluster endpoint and verifying Pod readiness & Service selectors...';
+          metaEl.textContent = 'WS: ONLINE • CHANCE: 50% • ATTEMPT: 1/3';
+        } else if (state === 'failed') {
+          titleEl.textContent = '❌ Verification Failed';
+          spinnerEl.style.display = 'none';
+          headingEl.textContent = 'AssertionError: Service port 30080 not reachable';
+          descEl.innerHTML = 'Pytest HTML diagnostic report uploaded to S3. Fix your deployment with <code>kubectl</code> and retry!';
+          metaEl.textContent = 'WS: CALLBACK RECEIVED • REPORT: S3 PRESIGNED URL READY';
+        } else if (state === 'passed') {
+          titleEl.textContent = '✅ Task Completed!';
+          spinnerEl.style.display = 'none';
+          headingEl.textContent = 'ALL KUBERNETES CHECKS PASSED (SCORE: +100)';
+          descEl.textContent = 'Pods deployed and healthy! Unpausing Causeway Bay mission and unlocking pointer lock...';
+          metaEl.textContent = 'WS: CALLBACK RECEIVED • STATUS: COMPLETED';
+        }
+      };
+
+      // Keyboard navigation
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+          e.preventDefault();
+          window.changeSlide(1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          window.changeSlide(-1);
+        } else if (e.key === 's' || e.key === 'S') {
+          window.toggleNotes();
+        } else if (e.key === 'f' || e.key === 'F') {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+          } else {
+            document.exitFullscreen?.();
+          }
+        }
+      });
+
+      // Initialize from URL hash if present
+      const match = window.location.hash.match(/^#slide-(\d+)$/);
+      if (match) {
+        const idx = parseInt(match[1], 10) - 1;
+        if (idx >= 0 && idx < totalSlides) {
+          currentIndex = idx;
+        }
+      }
+      applySlideDOM(currentIndex);
+    })();
+  </script>
+</body>
+</html>
