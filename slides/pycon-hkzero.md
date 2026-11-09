@@ -51,7 +51,7 @@ style: |
   }
 ---
 
-<!-- _backgroundImage: "linear-gradient(rgba(8,15,23,0.78), rgba(13,23,32,0.92)), url('../hkzero/assets/illustrations/og-hong-kong-zero-v3.jpg')" -->
+<!-- _backgroundImage: "linear-gradient(rgba(8,15,23,0.78), rgba(13,23,32,0.92)), url('./assets/illustrations/og-hong-kong-zero-v3.jpg')" -->
 
 # 從港域時空到 Kubernetes：將香港遊戲世界化身雲原生學習平台
 
@@ -74,7 +74,7 @@ style: |
 
 ---
 
-<!-- _backgroundImage: "linear-gradient(rgba(8,15,23,0.82), rgba(13,23,32,0.94)), url('../hkzero/assets/illustrations/district-causeway-bay-v1.jpg')" -->
+<!-- _backgroundImage: "linear-gradient(rgba(8,15,23,0.82), rgba(13,23,32,0.94)), url('./assets/illustrations/district-causeway-bay-v1.jpg')" -->
 
 ## MISSION 02 // Enter Hong Kong Zero (港域時空)
 
@@ -317,7 +317,7 @@ def _send_ws_message(endpoint: str, connection_id: str, payload: Dict[str, Any])
 
 ---
 
-<!-- _backgroundImage: "linear-gradient(rgba(8,15,23,0.82), rgba(13,23,32,0.92)), url('../hkzero/assets/illustrations/victory-v1.jpg')" -->
+<!-- _backgroundImage: "linear-gradient(rgba(8,15,23,0.82), rgba(13,23,32,0.92)), url('./assets/illustrations/victory-v1.jpg')" -->
 
 ## MISSION COMPLETE // Key Takeaways & Open Source
 
