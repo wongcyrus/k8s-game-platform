@@ -146,6 +146,18 @@ def _execute_game_phase(email, game, task_id, endpoint, conn_id, state, manifest
 
 ---
 
+## MISSION 03 // AWS Serverless & Durable Lambda Architecture
+
+![w:920 center](./assets/diagrams/aws-ws-durable-architecture.png)
+
+---
+
+## WebSocket Trigger & Durable Execution Sequence
+
+![w:920 center](./assets/diagrams/ws-sequence-diagram.png)
+
+---
+
 ## MISSION 03 // End-to-End Serverless Python Pipeline
 
 ```

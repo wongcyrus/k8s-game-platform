@@ -1011,7 +1011,42 @@ response = lambda_client.<span class="hl-fn">invoke</span>(
       </section>
 
       <!-- ====================================================================
-           SLIDE 6: END-TO-END PYTHON ARCHITECTURE
+           SLIDE 7: AWS SERVERLESS ARCHITECTURE DIAGRAM
+           ==================================================================== -->
+      <section class="slide" data-mission="MISSION 03: AWS ARCHITECTURE DIAGRAM" data-notes="Here is our complete AWS Serverless architecture diagram. Follow steps (1) through (9): the browser game opens a bidirectional WebSocket to API Gateway, routes to game-ws-handler to check the 2-second rate limit and acquire the DynamoDB Execution Guard lock, then asynchronously invokes game-command-handler (our Durable Lambda) which runs pytest against the student's Kubernetes cluster and pushes live status updates back through the WebSocket Management API!">
+        <div class="slide-content">
+          <div class="k8s-header" style="margin-bottom: 14px; padding-bottom: 10px;">
+            <div class="k8s-tagline">
+              <span class="k8s-red-bar"></span>
+              <span>MISSION 03 // AWS SERVERLESS &amp; DURABLE LAMBDA ARCHITECTURE</span>
+            </div>
+            <h2 class="slide-title" tabindex="-1" style="font-size: clamp(24px, 2.5vw, 34px);">End-to-End AWS Architecture: WebSocket &rarr; Durable Lambda &rarr; K8s Cluster</h2>
+          </div>
+
+          <div class="sim-controls" id="arch-diagram-tabs" style="margin-bottom: 12px;">
+            <button class="k8s-btn active-sim" onclick="setArchDiagram('./assets/diagrams/aws-ws-durable-architecture.png', 'AWS WebSocket + Durable Lambda Architecture (Steps 1–9)', this)">1. AWS WS + Durable Architecture</button>
+            <button class="k8s-btn secondary" onclick="setArchDiagram('./assets/diagrams/ws-sequence-diagram.png', 'WebSocket Trigger &amp; Durable Execution Sequence Diagram', this)">2. WS Sequence Diagram</button>
+            <button class="k8s-btn secondary" onclick="setArchDiagram('./assets/diagrams/phase-chaining-flowchart.png', 'Auto-Chaining Phase Flowchart (setup->ready &amp; challenge->check)', this)">3. Phase Chaining Flowchart</button>
+            <button class="k8s-btn secondary" onclick="setArchDiagram('./assets/diagrams/state-lifecycle-diagram.png', 'State Diagram: Phase Execution Lifecycle', this)">4. State Lifecycle</button>
+            <button class="k8s-btn secondary" onclick="setArchDiagram('./assets/diagrams/aws-full-stack-architecture.png', 'Full k8s-grader-api Stack Architecture (11 DynamoDB Tables + S3)', this)">5. Full Stack Overview</button>
+          </div>
+
+          <div class="k8s-card" style="padding: 14px 18px; text-align: center; background: #0a1219;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span id="arch-diagram-caption" style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-gold);">
+                AWS WebSocket + Durable Lambda Architecture (Steps 1–9)
+              </span>
+              <span style="font-size: 12px; color: var(--text-muted);">💡 Click image to open full resolution</span>
+            </div>
+            <a id="arch-diagram-link" href="./assets/diagrams/aws-ws-durable-architecture.png" target="_blank" style="display: inline-block;">
+              <img id="arch-diagram-img" src="./assets/diagrams/aws-ws-durable-architecture.png" alt="AWS Serverless WebSocket and Durable Lambda Architecture Diagram" style="max-height: 54vh; max-width: 100%; width: auto; border-radius: 4px; border: 1px solid var(--border-steel); background: #fff; display: block; margin: 0 auto;" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SLIDE 8: END-TO-END PYTHON PIPELINE SUMMARY
            ==================================================================== -->
       <section class="slide" data-mission="MISSION 03: PYTHON ARCHITECTURE" data-notes="Now let's look under the hood. What happens in Python between that WebSocket message leaving the browser and the callback arriving back? Here is the 6-step serverless pipeline.">
         <div class="slide-content">
@@ -1584,6 +1619,24 @@ execution_guard_repo.<span class="hl-fn">attach_request_id</span>(execution_guar
 
       window.toggleNotes = function () {
         notesDrawer.classList.toggle('visible');
+      };
+
+      // Interactive Architecture Diagram Switcher on Slide 7
+      window.setArchDiagram = function (src, caption, btnEl) {
+        const buttons = document.querySelectorAll('#arch-diagram-tabs .k8s-btn');
+        buttons.forEach(b => {
+          b.classList.remove('active-sim');
+          b.classList.add('secondary');
+        });
+        btnEl.classList.remove('secondary');
+        btnEl.classList.add('active-sim');
+
+        const imgEl = document.getElementById('arch-diagram-img');
+        const linkEl = document.getElementById('arch-diagram-link');
+        const capEl = document.getElementById('arch-diagram-caption');
+        if (imgEl) imgEl.src = src;
+        if (linkEl) linkEl.href = src;
+        if (capEl) capEl.textContent = caption;
       };
 
       // Interactive Demo Simulator on Slide 4
