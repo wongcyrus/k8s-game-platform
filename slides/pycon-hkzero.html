@@ -1254,26 +1254,26 @@ execution_guard_repo.<span class="hl-fn">attach_request_id</span>(execution_guar
       <!-- ====================================================================
            SLIDE 10: STAGE 2B - 6-PHASE TASK STATE MACHINE
            ==================================================================== -->
-      <section class="slide" data-mission="STAGE 02B: TASK STATE MACHINE" data-notes="Inside that durable step, how do we structure a Kubernetes exercise? Every exercise is a 6-phase state machine: setup, ready, answer, challenge, check, and cleanup.">
+      <section class="slide" data-mission="STAGE 02B: TASK STATE MACHINE" data-notes="Inside that durable step, a Kubernetes exercise may define setup, ready, answer, challenge, check, and cleanup phases. The game flow advances past answer without running its test.">
         <div class="slide-content">
           <div class="k8s-header">
             <div class="k8s-tagline">
               <span class="k8s-red-bar"></span>
               <span>PYTHON DEEP DIVE // STAGE 2: MULTI-PHASE K8S STATE MACHINE</span>
             </div>
-            <h2 class="slide-title" tabindex="-1">Orchestrating the 6-Phase K8s Lifecycle Inside the Durable Step</h2>
+            <h2 class="slide-title" tabindex="-1">Orchestrating the K8s Task Lifecycle Inside the Durable Step</h2>
           </div>
 
           <div class="grid-code-focus">
             <div class="k8s-card">
-              <h3>⚙️ The 6-Phase Task Lifecycle</h3>
+              <h3>⚙️ Typical Task Phases</h3>
               <ul>
                 <li><code>01_setup</code> &rarr; Prepare namespace / break cluster state</li>
                 <li><code>02_ready</code> &rarr; Verify lab environment is healthy</li>
-                <li><code>03_answer</code> &rarr; Check student's initial deployment</li>
+                <li><code>03_answer</code> &rarr; Advanced without running its test in game flow</li>
                 <li><code>04_challenge</code> &rarr; Inject chaos / delete Pods</li>
                 <li><code>05_check</code> &rarr; Verify self-healing &amp; resilience</li>
-                <li><code>06_cleanup</code> &rarr; Teardown resources &amp; award score</li>
+                <li><code>06_cleanup</code> &rarr; Best-effort resource teardown</li>
               </ul>
             </div>
 
